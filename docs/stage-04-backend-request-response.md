@@ -313,8 +313,8 @@ Stage 4 is complete when:
 - Stage 1: Product definition and MVP boundaries - complete
 - Stage 2: User flows and low-fidelity wireframes - complete
 - Stage 3: Technology setup and folder structure - complete
-- Stage 4: Backend request-and-response fundamentals - in progress
-- Stage 5: PostgreSQL and database fundamentals - not started
+- Stage 4: Backend request-and-response fundamentals - complete
+- Stage 5: PostgreSQL and database fundamentals - in progress
 - Stage 6: Database schema and migrations - not started
 - Stage 7: Basic Express server and health endpoint - covered by Stage 4
 - Stage 8: Registration, login, and protected routes - not started
