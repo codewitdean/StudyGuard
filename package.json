@@ -1,0 +1,24 @@
+{
+  "name": "studyguard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A full-stack academic workload and study-planning application for individual students.",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev:client": "npm run dev --workspace client",
+    "dev:server": "npm run dev --workspace server",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "start:server": "npm run start --workspace server",
+    "test:server": "npm run test --workspace server"
+  },
+  "devDependencies": {
+    "prettier": "3.9.6"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
