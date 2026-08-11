@@ -8,7 +8,8 @@ The project is being built gradually so each backend concept is understandable b
 
 - Stage 1: Product definition and MVP boundaries - complete
 - Stage 2: User flows and low-fidelity wireframes - complete
-- Stage 3: Technology setup and folder structure - in progress
+- Stage 3: Technology setup and folder structure - complete
+- Stage 4: Backend request-and-response fundamentals - in progress
 
 ## Project Structure
 
@@ -37,6 +38,12 @@ Run the backend:
 
 ```bash
 npm run dev:server
+```
+
+Test the backend:
+
+```bash
+npm run test:server
 ```
 
 Format files:

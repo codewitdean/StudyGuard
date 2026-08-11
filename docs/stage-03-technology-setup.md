@@ -201,7 +201,7 @@ Stage 3 is complete when:
 
 - Stage 1: Product definition and MVP boundaries - complete
 - Stage 2: User flows and low-fidelity wireframes - complete
-- Stage 3: Technology setup and folder structure - in progress
+- Stage 3: Technology setup and folder structure - complete
 - Stage 4: Backend request-and-response fundamentals - not started
 - Stage 5: PostgreSQL and database fundamentals - not started
 - Stage 6: Database schema and migrations - not started
