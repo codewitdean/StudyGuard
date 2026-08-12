@@ -31,7 +31,7 @@ createdb: command not found
 pg_isready: command not found
 ```
 
-That means PostgreSQL command-line tools are not installed or are not on the shell `PATH`.
+At the first Stage 5 check, that meant PostgreSQL command-line tools were not installed or were not on the shell `PATH`.
 
 Homebrew is available:
 
@@ -39,7 +39,7 @@ Homebrew is available:
 Homebrew 6.0.11
 ```
 
-We will decide in the next database stage whether to install PostgreSQL locally with Homebrew, use Docker, or connect to a managed PostgreSQL provider.
+Stage 6 rechecked this and found PostgreSQL tools available through Homebrew. The local PostgreSQL service still needed to be started before migrations could run.
 
 ## Why StudyGuard Needs a Database
 
@@ -479,8 +479,8 @@ Stage 5 is complete when:
 - Stage 2: User flows and low-fidelity wireframes - complete
 - Stage 3: Technology setup and folder structure - complete
 - Stage 4: Backend request-and-response fundamentals - complete
-- Stage 5: PostgreSQL and database fundamentals - in progress
-- Stage 6: Database schema and migrations - not started
+- Stage 5: PostgreSQL and database fundamentals - complete
+- Stage 6: Database schema and migrations - in progress
 - Stage 7: Basic Express server and health endpoint - covered by Stage 4
 - Stage 8: Registration, login, and protected routes - not started
 

@@ -10,7 +10,8 @@ The project is being built gradually so each backend concept is understandable b
 - Stage 2: User flows and low-fidelity wireframes - complete
 - Stage 3: Technology setup and folder structure - complete
 - Stage 4: Backend request-and-response fundamentals - complete
-- Stage 5: PostgreSQL and database fundamentals - in progress
+- Stage 5: PostgreSQL and database fundamentals - complete
+- Stage 6: Database schema and migrations - in progress
 
 ## Project Structure
 
@@ -45,6 +46,12 @@ Test the backend:
 
 ```bash
 npm run test:server
+```
+
+Run database migrations:
+
+```bash
+npm run db:migrate
 ```
 
 Format files:
