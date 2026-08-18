@@ -960,9 +960,11 @@ Stage 6 is complete when:
 - Stage 3: Technology setup and folder structure - complete
 - Stage 4: Backend request-and-response fundamentals - complete
 - Stage 5: PostgreSQL and database fundamentals - complete
-- Stage 6: Database schema and migrations - in progress
-- Stage 7: Basic Express server and health endpoint - covered by Stage 4
-- Stage 8: Registration, login, and protected routes - not started
+- Stage 6: Database schema and migrations - complete
+- Stage 7: Basic Express server and health endpoint - complete
+- Stage 8A: Authentication API design - in progress
+- Stage 8B: Authentication dependencies and environment setup - not started
+- Stage 8C: Register endpoint - not started
 
 ## Understanding Check
 
