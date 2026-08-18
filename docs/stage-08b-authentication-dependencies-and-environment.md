@@ -185,8 +185,8 @@ Stage 8B is complete when:
 - Stage 6: Database schema and migrations - complete
 - Stage 7: Basic Express server and health endpoint - complete
 - Stage 8A: Authentication API design - complete
-- Stage 8B: Authentication dependencies and environment setup - in progress
-- Stage 8C: Register endpoint - not started
+- Stage 8B: Authentication dependencies and environment setup - complete
+- Stage 8C: Register endpoint - in progress
 
 ## Understanding Check
 

@@ -6,6 +6,10 @@ import { registerSchema } from "../validators/authValidators.js";
 
 const router = Router();
 
-router.post("/register", validateRequest(registerSchema), asyncHandler(register));
+router.post(
+  "/register",
+  validateRequest(registerSchema),
+  asyncHandler(register),
+);
 
 export default router;

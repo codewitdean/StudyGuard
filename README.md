@@ -14,7 +14,8 @@ The project is being built gradually so each backend concept is understandable b
 - Stage 6: Database schema and migrations - complete
 - Stage 7: Basic Express server and health endpoint - complete
 - Stage 8A: Authentication API design - complete
-- Stage 8B: Authentication dependencies and environment setup - in progress
+- Stage 8B: Authentication dependencies and environment setup - complete
+- Stage 8C: Register endpoint - in progress
 
 ## Project Structure
 
