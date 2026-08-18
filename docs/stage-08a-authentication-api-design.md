@@ -765,8 +765,8 @@ Stage 8A is complete when:
 - Stage 5: PostgreSQL and database fundamentals - complete
 - Stage 6: Database schema and migrations - complete
 - Stage 7: Basic Express server and health endpoint - complete
-- Stage 8A: Authentication API design - in progress
-- Stage 8B: Authentication dependencies and environment setup - not started
+- Stage 8A: Authentication API design - complete
+- Stage 8B: Authentication dependencies and environment setup - in progress
 - Stage 8C: Register endpoint - not started
 - Stage 8D: Login endpoint - not started
 - Stage 8E: Protected current-user route - not started

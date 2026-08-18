@@ -13,7 +13,8 @@ The project is being built gradually so each backend concept is understandable b
 - Stage 5: PostgreSQL and database fundamentals - complete
 - Stage 6: Database schema and migrations - complete
 - Stage 7: Basic Express server and health endpoint - complete
-- Stage 8A: Authentication API design - in progress
+- Stage 8A: Authentication API design - complete
+- Stage 8B: Authentication dependencies and environment setup - in progress
 
 ## Project Structure
 
