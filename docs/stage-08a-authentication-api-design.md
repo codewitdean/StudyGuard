@@ -766,10 +766,11 @@ Stage 8A is complete when:
 - Stage 6: Database schema and migrations - complete
 - Stage 7: Basic Express server and health endpoint - complete
 - Stage 8A: Authentication API design - complete
-- Stage 8B: Authentication dependencies and environment setup - in progress
-- Stage 8C: Register endpoint - not started
-- Stage 8D: Login endpoint - not started
-- Stage 8E: Protected current-user route - not started
+- Stage 8B: Authentication dependencies and environment setup - complete
+- Stage 8C: Register endpoint - complete
+- Stage 8D: Login endpoint - complete
+- Stage 8E: Protected current-user route - complete
+- Stage 8F: Frontend auth forms and token storage - not started
 
 ## Understanding Check
 

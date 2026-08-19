@@ -8,6 +8,15 @@ function getBearerToken(authorizationHeader) {
   return authorizationHeader.slice("Bearer ".length);
 }
 
+function isAuthPayload(payload) {
+  return (
+    typeof payload === "object" &&
+    payload !== null &&
+    typeof payload.sub === "string" &&
+    typeof payload.email === "string"
+  );
+}
+
 export function requireAuth(req, res, next) {
   const token = getBearerToken(req.get("authorization"));
 
@@ -22,6 +31,10 @@ export function requireAuth(req, res, next) {
 
   try {
     const payload = verifyAuthToken(token);
+
+    if (!isAuthPayload(payload)) {
+      throw new Error("Invalid auth token payload.");
+    }
 
     req.user = {
       id: payload.sub,

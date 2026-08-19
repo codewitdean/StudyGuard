@@ -1,7 +1,10 @@
 import { query } from "../database/db.js";
-import { conflict } from "../utils/httpErrors.js";
-import { hashPassword } from "../utils/passwords.js";
+import { conflict, unauthorized } from "../utils/httpErrors.js";
+import { comparePasswords, hashPassword } from "../utils/passwords.js";
 import { createAuthToken } from "../utils/tokens.js";
+
+const invalidLoginError = "Invalid email or password.";
+const invalidSessionError = "Invalid or expired token.";
 
 function mapUserRow(row) {
   return {
@@ -15,7 +18,27 @@ function mapUserRow(row) {
 }
 
 async function findUserByEmail(email) {
-  const result = await query("SELECT id FROM users WHERE email = $1", [email]);
+  const result = await query(
+    `
+      SELECT id, name, email, password_hash, planning_priority, created_at, updated_at
+      FROM users
+      WHERE email = $1;
+    `,
+    [email],
+  );
+
+  return result.rows[0] ?? null;
+}
+
+async function findUserById(id) {
+  const result = await query(
+    `
+      SELECT id, name, email, planning_priority, created_at, updated_at
+      FROM users
+      WHERE id = $1;
+    `,
+    [id],
+  );
 
   return result.rows[0] ?? null;
 }
@@ -50,4 +73,36 @@ export async function registerUser({ name, email, password }) {
 
     throw error;
   }
+}
+
+export async function loginUser({ email, password }) {
+  const existingUser = await findUserByEmail(email);
+
+  if (!existingUser) {
+    throw unauthorized(invalidLoginError);
+  }
+
+  const passwordMatches = await comparePasswords(
+    password,
+    existingUser.password_hash,
+  );
+
+  if (!passwordMatches) {
+    throw unauthorized(invalidLoginError);
+  }
+
+  const user = mapUserRow(existingUser);
+  const token = createAuthToken(user);
+
+  return { user, token };
+}
+
+export async function getCurrentUserById(userId) {
+  const currentUser = await findUserById(userId);
+
+  if (!currentUser) {
+    throw unauthorized(invalidSessionError);
+  }
+
+  return mapUserRow(currentUser);
 }
