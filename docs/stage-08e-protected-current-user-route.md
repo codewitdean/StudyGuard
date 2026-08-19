@@ -238,7 +238,9 @@ Stage 8E is complete when:
 - Stage 8C: Register endpoint - complete
 - Stage 8D: Login endpoint - complete
 - Stage 8E: Protected current-user route - complete
-- Stage 8F: Frontend auth forms and token storage - not started
+- Stage 8F: Frontend auth forms and token storage - complete
+- Stage 9A: Courses API design - complete
+- Stage 9B: Courses CRUD API implementation - not started
 
 ## Understanding Check
 
