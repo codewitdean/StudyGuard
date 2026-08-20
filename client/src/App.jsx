@@ -7,6 +7,12 @@ import {
 import AvailabilityManagement from "./components/AvailabilityManagement.jsx";
 import CourseManagement from "./components/CourseManagement.jsx";
 import CourseworkManagement from "./components/CourseworkManagement.jsx";
+import DashboardView, {
+  getDashboardWorkloadStatusClassName,
+  getDashboardWorkloadStatusLabel,
+} from "./components/Dashboard.jsx";
+import ProfileManagement from "./components/ProfileManagement.jsx";
+import ProgressManagement from "./components/ProgressManagement.jsx";
 import RecommendationManagement from "./components/RecommendationManagement.jsx";
 import StudyPlanManagement from "./components/StudyPlanManagement.jsx";
 import {
@@ -33,31 +39,14 @@ const implementedNavItems = [
   "Availability",
   "Study Plan",
   "Recommendations",
+  "Progress",
+  "Profile",
 ];
 
 const previewStats = [
   { label: "Courses", value: "0" },
   { label: "Open tasks", value: "0" },
   { label: "Study blocks", value: "0" },
-];
-
-const dashboardCards = [
-  {
-    title: "Today's Tasks",
-    body: "No coursework yet.",
-  },
-  {
-    title: "Study Blocks",
-    body: "No study blocks yet.",
-  },
-  {
-    title: "Upcoming Deadlines",
-    body: "No deadlines have been added.",
-  },
-  {
-    title: "Weekly Workload",
-    body: "Required and available hours will appear here.",
-  },
 ];
 
 const initialFormData = {
@@ -100,6 +89,14 @@ function getViewTitle(activeView, firstName) {
 
   if (activeView === "Recommendations") {
     return "Review Recommendations";
+  }
+
+  if (activeView === "Progress") {
+    return "Track Progress";
+  }
+
+  if (activeView === "Profile") {
+    return "Profile Preferences";
   }
 
   return activeView;
@@ -306,66 +303,21 @@ function SignedOutScreen(props) {
   );
 }
 
-function DashboardView({
-  currentUser,
-  isChecking,
-  onRefreshCurrentUser,
-  statusMessage,
-}) {
-  return (
-    <>
-      {statusMessage ? (
-        <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-          {statusMessage}
-        </div>
-      ) : null}
-
-      <section className="mb-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-          <div>
-            <h3 className="text-base font-semibold">Profile</h3>
-            <p className="mt-1 text-sm text-slate-600">
-              {currentUser.email} - {currentUser.planningPriority}
-            </p>
-          </div>
-          <button
-            className="h-10 rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-            disabled={isChecking}
-            onClick={onRefreshCurrentUser}
-            type="button"
-          >
-            {isChecking ? "Refreshing..." : "Refresh Profile"}
-          </button>
-        </div>
-      </section>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        {dashboardCards.map((card) => (
-          <section
-            className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
-            key={card.title}
-          >
-            <h3 className="text-base font-semibold">{card.title}</h3>
-            <p className="mt-3 text-sm text-slate-600">{card.body}</p>
-          </section>
-        ))}
-      </div>
-    </>
-  );
-}
-
 function SignedInScreen({
   activeView,
   authToken,
   currentUser,
   isChecking,
   onAuthExpired,
+  onProfileUpdated,
   onRefreshCurrentUser,
   onSignOut,
   onViewChange,
   statusMessage,
 }) {
   const firstName = currentUser.name.split(" ")[0];
+  const [dashboardWorkloadStatus, setDashboardWorkloadStatus] =
+    useState("unknown");
 
   return (
     <main className="min-h-screen bg-stone-50 text-slate-950">
@@ -432,8 +384,12 @@ function SignedInScreen({
                 {getViewTitle(activeView, firstName)}
               </h2>
             </div>
-            <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800">
-              Workload status: Waiting for coursework
+            <div
+              className={getDashboardWorkloadStatusClassName(
+                dashboardWorkloadStatus,
+              )}
+            >
+              {getDashboardWorkloadStatusLabel(dashboardWorkloadStatus)}
             </div>
           </div>
 
@@ -462,11 +418,27 @@ function SignedInScreen({
               authToken={authToken}
               onAuthExpired={onAuthExpired}
             />
+          ) : activeView === "Progress" ? (
+            <ProgressManagement
+              authToken={authToken}
+              onAuthExpired={onAuthExpired}
+            />
+          ) : activeView === "Profile" ? (
+            <ProfileManagement
+              authToken={authToken}
+              currentUser={currentUser}
+              onAuthExpired={onAuthExpired}
+              onProfileUpdated={onProfileUpdated}
+            />
           ) : (
             <DashboardView
+              authToken={authToken}
               currentUser={currentUser}
               isChecking={isChecking}
+              onAuthExpired={onAuthExpired}
               onRefreshCurrentUser={onRefreshCurrentUser}
+              onViewChange={onViewChange}
+              onWorkloadStatusChange={setDashboardWorkloadStatus}
               statusMessage={statusMessage}
             />
           )}
@@ -635,6 +607,7 @@ function App() {
         currentUser={currentUser}
         isChecking={sessionStatus === "checking"}
         onAuthExpired={handleAuthExpired}
+        onProfileUpdated={setCurrentUser}
         onRefreshCurrentUser={handleRefreshCurrentUser}
         onSignOut={() => handleSignOut()}
         onViewChange={setActiveView}

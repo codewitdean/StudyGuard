@@ -106,3 +106,35 @@ export async function getCurrentUserById(userId) {
 
   return mapUserRow(currentUser);
 }
+
+export async function updateCurrentUserById(userId, updates) {
+  const assignments = [];
+  const params = [userId];
+
+  if (Object.hasOwn(updates, "name")) {
+    params.push(updates.name);
+    assignments.push("name = $" + params.length);
+  }
+
+  if (Object.hasOwn(updates, "planningPriority")) {
+    params.push(updates.planningPriority);
+    assignments.push("planning_priority = $" + params.length);
+  }
+
+  const result = await query(
+    [
+      "UPDATE users",
+      "SET " + assignments.join(", ") + ", updated_at = now()",
+      "WHERE id = $1",
+      "RETURNING id, name, email, planning_priority, created_at, updated_at;",
+    ].join("\n"),
+    params,
+  );
+  const updatedUser = result.rows[0];
+
+  if (!updatedUser) {
+    throw unauthorized(invalidSessionError);
+  }
+
+  return mapUserRow(updatedUser);
+}

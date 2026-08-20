@@ -34,7 +34,16 @@ The project is being built gradually so each backend concept is understandable b
 - Stage 13A: Recommendations API design - complete
 - Stage 13B: Recommendations CRUD API implementation - complete
 - Stage 13C: Frontend recommendations review - complete
-- Stage 14A: Progress API design - not started
+- Stage 14A: Progress API design - complete
+- Stage 14B: Progress API implementation - complete
+- Stage 14C: Frontend progress dashboard - complete
+- Stage 15A: Dashboard data integration design - complete
+- Stage 15B: Dashboard data integration implementation - complete
+- Stage 16A: Profile preferences API design - complete
+- Stage 16B: Profile preferences API implementation - complete
+- Stage 16C: Frontend profile preferences screen - complete
+- Stage 17A: MVP QA and release readiness design - complete
+- Stage 17B: MVP QA and release readiness implementation - not started
 
 ## Project Structure
 
@@ -52,6 +61,15 @@ Install dependencies:
 ```bash
 npm install
 ```
+
+Create local environment files:
+
+```bash
+cp server/.env.example server/.env
+cp client/.env.example client/.env
+```
+
+The backend needs `server/.env` so `DATABASE_URL` and `JWT_SECRET` are available when you run the API.
 
 Run the frontend:
 

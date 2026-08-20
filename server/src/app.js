@@ -6,6 +6,7 @@ import availabilityRoutes from "./routes/availabilityRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
 import courseworkRoutes from "./routes/courseworkRoutes.js";
 import healthRoutes from "./routes/healthRoutes.js";
+import progressRoutes from "./routes/progressRoutes.js";
 import recommendationRoutes from "./routes/recommendationRoutes.js";
 import studyPlanRoutes from "./routes/studyPlanRoutes.js";
 
@@ -27,6 +28,7 @@ app.use("/api/courses", courseRoutes);
 app.use("/api/coursework", courseworkRoutes);
 app.use("/api/study-plans", studyPlanRoutes);
 app.use("/api/recommendations", recommendationRoutes);
+app.use("/api/progress", progressRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

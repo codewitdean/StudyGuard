@@ -79,3 +79,11 @@ export function getCurrentStudent(token) {
     token,
   });
 }
+
+export function updateCurrentStudent(token, profile) {
+  return requestJson("/api/auth/me", {
+    method: "PATCH",
+    body: profile,
+    token,
+  });
+}
