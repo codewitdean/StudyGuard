@@ -240,7 +240,18 @@ Stage 8E is complete when:
 - Stage 8E: Protected current-user route - complete
 - Stage 8F: Frontend auth forms and token storage - complete
 - Stage 9A: Courses API design - complete
-- Stage 9B: Courses CRUD API implementation - not started
+- Stage 9B: Courses CRUD API implementation - complete
+- Stage 9C: Frontend course management - complete
+- Stage 10A: Coursework API design - complete
+- Stage 10B: Coursework CRUD API implementation - complete
+- Stage 10C: Frontend coursework management - complete
+- Stage 11A: Availability API design - complete
+- Stage 11B: Availability CRUD API implementation - complete
+- Stage 11C: Frontend availability management - complete
+- Stage 12A: Study plan API design - complete
+- Stage 12B: Study plan generation API implementation - complete
+- Stage 12C: Frontend study plan generation - complete
+- Stage 13A: Recommendations API design - not started
 
 ## Understanding Check
 

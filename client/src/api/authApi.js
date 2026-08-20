@@ -25,7 +25,7 @@ function getErrorMessage(payload, statusCode) {
   );
 }
 
-async function requestJson(path, { method = "GET", body, token } = {}) {
+export async function requestJson(path, { method = "GET", body, token } = {}) {
   const headers = {};
 
   if (body) {
@@ -57,7 +57,7 @@ async function requestJson(path, { method = "GET", body, token } = {}) {
     });
   }
 
-  return payload.data;
+  return payload?.data ?? null;
 }
 
 export function registerStudent({ name, email, password }) {

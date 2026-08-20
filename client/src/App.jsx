@@ -4,6 +4,11 @@ import {
   loginStudent,
   registerStudent,
 } from "./api/authApi.js";
+import AvailabilityManagement from "./components/AvailabilityManagement.jsx";
+import CourseManagement from "./components/CourseManagement.jsx";
+import CourseworkManagement from "./components/CourseworkManagement.jsx";
+import RecommendationManagement from "./components/RecommendationManagement.jsx";
+import StudyPlanManagement from "./components/StudyPlanManagement.jsx";
 import {
   clearStoredAuthToken,
   getStoredAuthToken,
@@ -19,6 +24,15 @@ const navItems = [
   "Recommendations",
   "Progress",
   "Profile",
+];
+
+const implementedNavItems = [
+  "Dashboard",
+  "Courses",
+  "Coursework",
+  "Availability",
+  "Study Plan",
+  "Recommendations",
 ];
 
 const previewStats = [
@@ -61,6 +75,34 @@ function getInitials(name) {
     .join("");
 
   return initials || "SG";
+}
+
+function getViewTitle(activeView, firstName) {
+  if (activeView === "Dashboard") {
+    return "Welcome back, " + firstName;
+  }
+
+  if (activeView === "Courses") {
+    return "Manage Courses";
+  }
+
+  if (activeView === "Coursework") {
+    return "Manage Coursework";
+  }
+
+  if (activeView === "Availability") {
+    return "Manage Availability";
+  }
+
+  if (activeView === "Study Plan") {
+    return "Generate Study Plan";
+  }
+
+  if (activeView === "Recommendations") {
+    return "Review Recommendations";
+  }
+
+  return activeView;
 }
 
 function formatFieldName(field) {
@@ -264,16 +306,70 @@ function SignedOutScreen(props) {
   );
 }
 
-function SignedInScreen({
+function DashboardView({
   currentUser,
   isChecking,
   onRefreshCurrentUser,
-  onSignOut,
   statusMessage,
 }) {
   return (
+    <>
+      {statusMessage ? (
+        <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          {statusMessage}
+        </div>
+      ) : null}
+
+      <section className="mb-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+          <div>
+            <h3 className="text-base font-semibold">Profile</h3>
+            <p className="mt-1 text-sm text-slate-600">
+              {currentUser.email} - {currentUser.planningPriority}
+            </p>
+          </div>
+          <button
+            className="h-10 rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
+            disabled={isChecking}
+            onClick={onRefreshCurrentUser}
+            type="button"
+          >
+            {isChecking ? "Refreshing..." : "Refresh Profile"}
+          </button>
+        </div>
+      </section>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {dashboardCards.map((card) => (
+          <section
+            className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
+            key={card.title}
+          >
+            <h3 className="text-base font-semibold">{card.title}</h3>
+            <p className="mt-3 text-sm text-slate-600">{card.body}</p>
+          </section>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function SignedInScreen({
+  activeView,
+  authToken,
+  currentUser,
+  isChecking,
+  onAuthExpired,
+  onRefreshCurrentUser,
+  onSignOut,
+  onViewChange,
+  statusMessage,
+}) {
+  const firstName = currentUser.name.split(" ")[0];
+
+  return (
     <main className="min-h-screen bg-stone-50 text-slate-950">
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 px-4 py-5 sm:px-6 lg:flex-row lg:px-8">
+      <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-6 px-4 py-5 sm:px-6 lg:flex-row lg:px-8">
         <aside className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:w-64">
           <h1 className="text-xl font-semibold">StudyGuard</h1>
 
@@ -294,20 +390,27 @@ function SignedInScreen({
           </div>
 
           <nav className="mt-5 grid gap-1" aria-label="Primary navigation">
-            {navItems.map((item) => (
-              <button
-                className={
-                  "rounded-md px-3 py-2 text-left text-sm font-medium transition " +
-                  (item === "Dashboard"
-                    ? "bg-emerald-50 text-emerald-800"
-                    : "text-slate-700 hover:bg-slate-100 hover:text-slate-950")
-                }
-                key={item}
-                type="button"
-              >
-                {item}
-              </button>
-            ))}
+            {navItems.map((item) => {
+              const isImplemented = implementedNavItems.includes(item);
+              const isActive = activeView === item;
+
+              return (
+                <button
+                  className={
+                    "rounded-md px-3 py-2 text-left text-sm font-medium transition disabled:cursor-not-allowed disabled:text-slate-300 " +
+                    (isActive
+                      ? "bg-emerald-50 text-emerald-800"
+                      : "text-slate-700 hover:bg-slate-100 hover:text-slate-950")
+                  }
+                  disabled={!isImplemented}
+                  key={item}
+                  onClick={() => onViewChange(item)}
+                  type="button"
+                >
+                  {item}
+                </button>
+              );
+            })}
           </nav>
 
           <button
@@ -323,10 +426,10 @@ function SignedInScreen({
           <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
             <div>
               <p className="text-sm font-medium uppercase text-emerald-700">
-                Dashboard
+                {activeView}
               </p>
               <h2 className="mt-1 text-3xl font-semibold">
-                Welcome back, {currentUser.name.split(" ")[0]}
+                {getViewTitle(activeView, firstName)}
               </h2>
             </div>
             <div className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800">
@@ -334,42 +437,39 @@ function SignedInScreen({
             </div>
           </div>
 
-          {statusMessage ? (
-            <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-              {statusMessage}
-            </div>
-          ) : null}
-
-          <section className="mb-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-              <div>
-                <h3 className="text-base font-semibold">Profile</h3>
-                <p className="mt-1 text-sm text-slate-600">
-                  {currentUser.email} - {currentUser.planningPriority}
-                </p>
-              </div>
-              <button
-                className="h-10 rounded-md border border-slate-300 px-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400"
-                disabled={isChecking}
-                onClick={onRefreshCurrentUser}
-                type="button"
-              >
-                {isChecking ? "Refreshing..." : "Refresh Profile"}
-              </button>
-            </div>
-          </section>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            {dashboardCards.map((card) => (
-              <section
-                className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm"
-                key={card.title}
-              >
-                <h3 className="text-base font-semibold">{card.title}</h3>
-                <p className="mt-3 text-sm text-slate-600">{card.body}</p>
-              </section>
-            ))}
-          </div>
+          {activeView === "Courses" ? (
+            <CourseManagement
+              authToken={authToken}
+              onAuthExpired={onAuthExpired}
+            />
+          ) : activeView === "Coursework" ? (
+            <CourseworkManagement
+              authToken={authToken}
+              onAuthExpired={onAuthExpired}
+            />
+          ) : activeView === "Availability" ? (
+            <AvailabilityManagement
+              authToken={authToken}
+              onAuthExpired={onAuthExpired}
+            />
+          ) : activeView === "Study Plan" ? (
+            <StudyPlanManagement
+              authToken={authToken}
+              onAuthExpired={onAuthExpired}
+            />
+          ) : activeView === "Recommendations" ? (
+            <RecommendationManagement
+              authToken={authToken}
+              onAuthExpired={onAuthExpired}
+            />
+          ) : (
+            <DashboardView
+              currentUser={currentUser}
+              isChecking={isChecking}
+              onRefreshCurrentUser={onRefreshCurrentUser}
+              statusMessage={statusMessage}
+            />
+          )}
         </section>
       </div>
     </main>
@@ -377,6 +477,7 @@ function SignedInScreen({
 }
 
 function App() {
+  const [activeView, setActiveView] = useState("Dashboard");
   const [authMode, setAuthMode] = useState("login");
   const [authToken, setAuthToken] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
@@ -476,6 +577,7 @@ function App() {
       setCurrentUser(data.user);
       setSessionStatus("signedIn");
       setStatusMessage(isRegistering ? "Account created." : "Signed in.");
+      setActiveView("Dashboard");
       setFormData({
         ...initialFormData,
         email: data.user.email,
@@ -518,15 +620,24 @@ function App() {
     setSessionStatus("signedOut");
     setStatusMessage(message);
     setAuthMode("login");
+    setActiveView("Dashboard");
+  }
+
+  function handleAuthExpired() {
+    handleSignOut("Session expired. Please log in again.");
   }
 
   if (currentUser) {
     return (
       <SignedInScreen
+        activeView={activeView}
+        authToken={authToken}
         currentUser={currentUser}
         isChecking={sessionStatus === "checking"}
+        onAuthExpired={handleAuthExpired}
         onRefreshCurrentUser={handleRefreshCurrentUser}
         onSignOut={() => handleSignOut()}
+        onViewChange={setActiveView}
         statusMessage={statusMessage}
       />
     );
