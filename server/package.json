@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "db:migrate": "node src/database/migrate.js",
+    "db:seed": "node src/database/seedDummyData.js",
     "dev": "node src/server.js",
     "start": "node src/server.js",
     "test": "vitest"
@@ -15,6 +16,10 @@
     "dotenv": "17.4.2",
     "express": "5.2.1",
     "jsonwebtoken": "^9.0.3",
+    "mammoth": "^1.12.1",
+    "multer": "^2.2.0",
+    "openai": "^7.5.0",
+    "pdf-parse": "^2.4.5",
     "pg": "^8.23.0",
     "zod": "^4.4.3"
   },

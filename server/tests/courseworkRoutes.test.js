@@ -4,6 +4,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 process.env.DATABASE_URL ??= "postgresql://localhost:5432/studyguard_dev";
 process.env.JWT_SECRET = "stage-10b-coursework-routes-test-secret";
 process.env.JWT_EXPIRES_IN = "1h";
+process.env.OPENAI_API_KEY = "";
 
 const { default: app } = await import("../src/app.js");
 const { closeDatabase, query } = await import("../src/database/db.js");
@@ -66,6 +67,12 @@ async function updateCoursework(token, courseworkId, body) {
 
 function getCourseworkItem(response) {
   return response.body.data.courseworkItem;
+}
+
+function getLocalDateFromIso(value) {
+  const date = new Date(value);
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return localDate.toISOString().slice(0, 10);
 }
 
 beforeAll(async () => {
@@ -173,6 +180,250 @@ describe("/api/coursework", () => {
       gradeWeight: 12.5,
       topic: null,
       notes: "Start with graph cleanup.",
+    });
+  });
+
+  it("previews uploaded syllabus files through multipart upload", async () => {
+    const student = await createTestStudent("syllabus-upload");
+    const courseResponse = await createCourse(student.token, {
+      name: "Uploaded Syllabus Course",
+      code: "UPL 101",
+    });
+    const course = courseResponse.body.data.course;
+    const syllabusText = [
+      "Sep 3 - Quiz 1 due 11:59 PM 10%",
+      "Sep 14: Midterm Exam 25%",
+      "Sep 21 - Lecture discussion only",
+    ].join("\n");
+
+    const response = await request(app)
+      .post("/api/coursework/syllabus/upload-preview")
+      .set("Authorization", `Bearer ${student.token}`)
+      .field("courseId", course.id)
+      .field("calendarYear", "2099")
+      .attach("syllabus", Buffer.from(syllabusText), {
+        filename: "uploaded-syllabus.txt",
+        contentType: "text/plain",
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.preview.items).toHaveLength(2);
+    expect(response.body.data.preview.items.map((item) => item.type)).toEqual([
+      "quiz",
+      "exam",
+    ]);
+    expect(response.body.data.preview.fileName).toBe("uploaded-syllabus.txt");
+  });
+
+  it("rejects unsupported syllabus upload file types", async () => {
+    const student = await createTestStudent("syllabus-upload-type");
+    const courseResponse = await createCourse(student.token);
+    const course = courseResponse.body.data.course;
+
+    const response = await request(app)
+      .post("/api/coursework/syllabus/upload-preview")
+      .set("Authorization", `Bearer ${student.token}`)
+      .field("courseId", course.id)
+      .field("calendarYear", "2099")
+      .attach("syllabus", Buffer.from("Sep 3 - Quiz due 11:59 PM"), {
+        filename: "legacy-syllabus.doc",
+        contentType: "application/msword",
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.message).toBe(
+      "Upload a PDF, Word .docx, text, Markdown, or CSV syllabus file.",
+    );
+  });
+
+  it("returns workload and key events from the local syllabus reader", async () => {
+    const student = await createTestStudent("syllabus-local-reader");
+    const courseResponse = await createCourse(student.token, {
+      name: "Summer Algorithms",
+      code: "CS 310",
+    });
+    const course = courseResponse.body.data.course;
+    const syllabusText = [
+      "Students should expect to spend 6-8 hours per week outside class.",
+      "Sep 7 - No class for Labor Day",
+      "Sep 12 - Quiz 1 due 11:59 PM 10%",
+    ].join("\n");
+
+    const response = await request(app)
+      .post("/api/coursework/syllabus/preview")
+      .set("Authorization", `Bearer ${student.token}`)
+      .send({
+        courseId: course.id,
+        fileName: "summer-algorithms.txt",
+        calendarYear: 2099,
+        analysisMode: "rules",
+        syllabusText,
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.preview.items).toHaveLength(1);
+    expect(response.body.data.preview.meta).toMatchObject({
+      analysisMode: "rules",
+      requestedAnalysisMode: "rules",
+      aiReaderConfigured: false,
+      workload: {
+        projectedStudyHoursPerWeek: 7,
+        minHours: 6,
+        maxHours: 8,
+        confidence: "high",
+      },
+    });
+    expect(response.body.data.preview.meta.keyEvents).toEqual([
+      expect.objectContaining({
+        title: "No class for Labor Day",
+        type: "no_class",
+      }),
+    ]);
+  });
+
+  it("falls back to the local reader when smart syllabus analysis has no API key", async () => {
+    const student = await createTestStudent("syllabus-ai-fallback");
+    const courseResponse = await createCourse(student.token, {
+      name: "Fall Writing",
+      code: "WRIT 240",
+    });
+    const course = courseResponse.body.data.course;
+
+    const response = await request(app)
+      .post("/api/coursework/syllabus/preview")
+      .set("Authorization", `Bearer ${student.token}`)
+      .send({
+        courseId: course.id,
+        calendarYear: 2099,
+        analysisMode: "auto",
+        syllabusText: "Sep 14 - Research memo due 11:59 PM",
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.preview.items).toHaveLength(1);
+    expect(response.body.data.preview.meta).toMatchObject({
+      analysisMode: "rules",
+      requestedAnalysisMode: "auto",
+      aiReaderConfigured: false,
+      warnings: ["OPENAI_API_KEY is not configured."],
+    });
+  });
+
+  it("previews coursework from calendar table rows and split PDF-style lines", async () => {
+    const student = await createTestStudent("syllabus-calendar-table");
+    const courseResponse = await createCourse(student.token, {
+      name: "Applied Research Studio",
+      code: "RSCH 330",
+    });
+    const course = courseResponse.body.data.course;
+    const syllabusText = [
+      "Week | Dates | Topic | Work Due",
+      "1 | Sep 2-8 | Course setup | Syllabus Quiz due Sunday 5%",
+      "2 | Sep 9 | Research basics | Annotated Bibliography assigned Sep 9 due Sep 16 15%",
+      "Sep 23",
+      "Project Proposal due 11:59 PM 20%",
+    ].join("\n");
+
+    const response = await request(app)
+      .post("/api/coursework/syllabus/preview")
+      .set("Authorization", `Bearer ${student.token}`)
+      .send({
+        courseId: course.id,
+        fileName: "calendar-syllabus.txt",
+        calendarYear: 2099,
+        analysisMode: "rules",
+        syllabusText,
+      });
+
+    expect(response.status).toBe(200);
+    const items = response.body.data.preview.items;
+    expect(items.map((item) => item.title)).toEqual([
+      "Syllabus Quiz",
+      "Annotated Bibliography",
+      "Project Proposal",
+    ]);
+    expect(items.map((item) => getLocalDateFromIso(item.dueAt))).toEqual([
+      "2099-09-06",
+      "2099-09-16",
+      "2099-09-23",
+    ]);
+    expect(items[1].assignedAt).toBeTruthy();
+    expect(getLocalDateFromIso(items[1].assignedAt)).toBe("2099-09-09");
+    expect(items[1].notes).toContain("Assigned: 2099-09-09");
+  });
+
+  it("previews and imports coursework from syllabus text", async () => {
+    const student = await createTestStudent("syllabus-import");
+    const courseResponse = await createCourse(student.token, {
+      name: "World Literature",
+      code: "LIT 220",
+    });
+    const course = courseResponse.body.data.course;
+    const syllabusText = [
+      "Week 1 | Sep 3 - Quiz 1 due 11:59 PM 10%",
+      "Sep 14: Midterm Exam 25%",
+      "September 20 - Research Project proposal due",
+      "Sep 21 - Lecture: context and background",
+    ].join("\n");
+
+    const previewResponse = await request(app)
+      .post("/api/coursework/syllabus/preview")
+      .set("Authorization", `Bearer ${student.token}`)
+      .send({
+        courseId: course.id,
+        fileName: "lit-syllabus.txt",
+        calendarYear: 2099,
+        syllabusText,
+      });
+
+    expect(previewResponse.status).toBe(200);
+    expect(previewResponse.body.data.preview.course).toMatchObject({
+      id: course.id,
+      name: "World Literature",
+    });
+    expect(previewResponse.body.data.preview.items).toHaveLength(3);
+    expect(
+      previewResponse.body.data.preview.items.map((item) => item.type),
+    ).toEqual(["quiz", "exam", "project"]);
+    expect(previewResponse.body.data.preview.meta).toMatchObject({
+      extractedItemCount: 3,
+    });
+
+    const importResponse = await request(app)
+      .post("/api/coursework/syllabus/import")
+      .set("Authorization", `Bearer ${student.token}`)
+      .send({
+        courseId: course.id,
+        fileName: "lit-syllabus.txt",
+        items: previewResponse.body.data.preview.items,
+      });
+
+    expect(importResponse.status).toBe(201);
+    expect(importResponse.body.data.importResult.summary).toEqual({
+      requestedCount: 3,
+      importedCount: 3,
+      duplicateCount: 0,
+    });
+    expect(
+      importResponse.body.data.importResult.importedCoursework.map(
+        (item) => item.courseId,
+      ),
+    ).toEqual([course.id, course.id, course.id]);
+
+    const duplicateResponse = await request(app)
+      .post("/api/coursework/syllabus/import")
+      .set("Authorization", `Bearer ${student.token}`)
+      .send({
+        courseId: course.id,
+        fileName: "lit-syllabus.txt",
+        items: previewResponse.body.data.preview.items,
+      });
+
+    expect(duplicateResponse.status).toBe(201);
+    expect(duplicateResponse.body.data.importResult.summary).toEqual({
+      requestedCount: 3,
+      importedCount: 0,
+      duplicateCount: 3,
     });
   });
 

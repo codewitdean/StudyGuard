@@ -5,6 +5,11 @@ import {
   listCourseworkForUser,
   updateCourseworkForUser,
 } from "../services/courseworkService.js";
+import {
+  importSyllabusCourseworkForUser,
+  previewSyllabusCourseworkForUser,
+  previewUploadedSyllabusCourseworkForUser,
+} from "../services/syllabusImportService.js";
 
 export async function listCoursework(req, res) {
   const coursework = await listCourseworkForUser(
@@ -30,6 +35,49 @@ export async function createCoursework(req, res) {
     success: true,
     data: {
       courseworkItem,
+    },
+  });
+}
+
+export async function previewSyllabusCoursework(req, res) {
+  const preview = await previewSyllabusCourseworkForUser(
+    req.user.id,
+    req.validated.body,
+  );
+
+  res.status(200).json({
+    success: true,
+    data: {
+      preview,
+    },
+  });
+}
+
+export async function previewUploadedSyllabusCoursework(req, res) {
+  const preview = await previewUploadedSyllabusCourseworkForUser(
+    req.user.id,
+    req.validated.body,
+    req.file,
+  );
+
+  res.status(200).json({
+    success: true,
+    data: {
+      preview,
+    },
+  });
+}
+
+export async function importSyllabusCoursework(req, res) {
+  const importResult = await importSyllabusCourseworkForUser(
+    req.user.id,
+    req.validated.body,
+  );
+
+  res.status(201).json({
+    success: true,
+    data: {
+      importResult,
     },
   });
 }

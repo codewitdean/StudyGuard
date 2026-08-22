@@ -22,6 +22,7 @@ const courseworkStatusValues = [
 const listStatusValues = ["open", "all", ...courseworkStatusValues];
 const dueFilterValues = ["all", "upcoming", "overdue", "no_due_date"];
 const sortValues = ["dueDate", "createdNewest", "effortHigh"];
+const syllabusAnalysisModeValues = ["auto", "ai", "rules"];
 
 function trimStringValue(value) {
   return typeof value === "string" ? value.trim() : value;
@@ -63,6 +64,8 @@ const optionalUuidSchema = z.preprocess(
   z.union([z.null(), z.string().uuid()]).optional(),
 );
 
+const requiredUuidSchema = z.preprocess(trimStringValue, z.string().uuid());
+
 const optionalDateTimeSchema = z.preprocess(
   (value) => {
     if (typeof value !== "string") {
@@ -101,10 +104,18 @@ const optionalGradeWeightSchema = z.preprocess(
   z.union([z.null(), z.number().min(0).max(100)]).optional(),
 );
 
+const calendarYearSchema = z.preprocess(
+  (value) => parseNumberString(value, undefined),
+  z.number().int().min(2000).max(2100).default(new Date().getFullYear()),
+);
+
 const courseworkTypeSchema = trimmedEnum(courseworkTypeValues);
 const courseworkPrioritySchema = trimmedEnum(courseworkPriorityValues);
 const courseworkDifficultySchema = trimmedEnum(courseworkDifficultyValues);
 const courseworkStatusSchema = trimmedEnum(courseworkStatusValues);
+const syllabusAnalysisModeSchema = trimmedEnum(
+  syllabusAnalysisModeValues,
+).default("auto");
 
 const createCourseworkBodySchema = z.object({
   courseId: optionalUuidSchema,
@@ -139,6 +150,40 @@ const updateCourseworkBodySchema = z
     message: "At least one field must be provided.",
   });
 
+const syllabusPreviewBodySchema = z.object({
+  courseId: requiredUuidSchema,
+  fileName: optionalTrimmedText(160),
+  syllabusText: z.string().trim().min(20).max(2000000),
+  calendarYear: calendarYearSchema,
+  analysisMode: syllabusAnalysisModeSchema,
+});
+
+const syllabusUploadPreviewBodySchema = z.object({
+  courseId: requiredUuidSchema,
+  fileName: optionalTrimmedText(160),
+  calendarYear: calendarYearSchema,
+  analysisMode: syllabusAnalysisModeSchema,
+});
+
+const syllabusImportItemSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  description: optionalTrimmedText(),
+  type: courseworkTypeSchema,
+  dueAt: z.string().datetime({ offset: true }),
+  priority: courseworkPrioritySchema.default("medium"),
+  difficulty: courseworkDifficultySchema.default("medium"),
+  estimatedMinutes: createEstimatedMinutesSchema,
+  gradeWeight: optionalGradeWeightSchema,
+  topic: optionalTrimmedText(120),
+  notes: optionalTrimmedText(),
+});
+
+const syllabusImportBodySchema = z.object({
+  courseId: requiredUuidSchema,
+  fileName: optionalTrimmedText(160),
+  items: z.array(syllabusImportItemSchema).min(1).max(100),
+});
+
 const courseworkParamsSchema = z.object({
   courseworkId: z.string().uuid(),
 });
@@ -157,6 +202,24 @@ export const listCourseworkSchema = z.object({
 
 export const createCourseworkSchema = z.object({
   body: createCourseworkBodySchema,
+  params: z.object({}),
+  query: z.object({}),
+});
+
+export const syllabusPreviewSchema = z.object({
+  body: syllabusPreviewBodySchema,
+  params: z.object({}),
+  query: z.object({}),
+});
+
+export const syllabusImportSchema = z.object({
+  body: syllabusImportBodySchema,
+  params: z.object({}),
+  query: z.object({}),
+});
+
+export const syllabusUploadPreviewSchema = z.object({
+  body: syllabusUploadPreviewBodySchema,
   params: z.object({}),
   query: z.object({}),
 });

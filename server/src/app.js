@@ -10,16 +10,25 @@ import progressRoutes from "./routes/progressRoutes.js";
 import recommendationRoutes from "./routes/recommendationRoutes.js";
 import studyPlanRoutes from "./routes/studyPlanRoutes.js";
 
-const clientOrigin = process.env.CLIENT_ORIGIN ?? "http://localhost:5173";
+const defaultClientOrigins = ["http://localhost:5173", "http://127.0.0.1:5173"];
+const clientOrigins = (
+  process.env.CLIENT_ORIGIN
+    ? process.env.CLIENT_ORIGIN.split(",")
+    : defaultClientOrigins
+)
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 const app = express();
 
 app.use(
   cors({
-    origin: clientOrigin,
+    origin(origin, callback) {
+      callback(null, !origin || clientOrigins.includes(origin));
+    },
   }),
 );
-app.use(express.json());
+app.use(express.json({ limit: "2mb" }));
 
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);

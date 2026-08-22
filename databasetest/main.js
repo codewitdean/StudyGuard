@@ -1,14 +1,25 @@
-const {Client}=require('pg')
+const { Client } = require("pg");
 
-const con =new Client(
-   {
-     host:"localhost",
-     user: "postgres",
-     port:5432,
-     password:"thenewman",
-     database:"test"
-   }
-)
+const connectionConfig = {
+  host: process.env.PGHOST ?? "localhost",
+  user: process.env.PGUSER ?? "postgres",
+  port: Number(process.env.PGPORT ?? 5432),
+  password: process.env.PGPASSWORD,
+  database: process.env.PGDATABASE ?? "test",
+};
 
-con.connect().then(()=>console.log("Connected to post"))
-con
+async function main() {
+  const client = new Client(connectionConfig);
+
+  try {
+    await client.connect();
+    console.log("Connected to Postgres.");
+  } finally {
+    await client.end();
+  }
+}
+
+main().catch((error) => {
+  console.error(error.message);
+  process.exitCode = 1;
+});
